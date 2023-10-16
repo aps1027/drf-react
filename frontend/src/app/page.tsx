@@ -97,60 +97,70 @@ export default function Home() {
           ))}
         </select>
       </div>
+
       <div className="my-4">
         <h2 className="text-2xl font-semibold">Total Amount: {totalAmount}</h2>
       </div>
       <div className="my-4">
         <h2 className="text-2xl font-semibold">Food Items:</h2>
-        <ul>
-          {foodItems.map((foodItem) => (
-            <li key={foodItem.id} className="mt-2">
-              <div className="flex justify-between items-center">
-                <span className="text-lg">{foodItem.name}</span>
-                <span className="text-gray-600">
-                  Price: ${foodItem.price.toFixed(2)}, Quantity:{" "}
-                  {foodItem.quantity}
-                </span>
-              </div>
-            </li>
-          ))}
-        </ul>
       </div>
 
-      <div>
-        <h2 className="text-2xl font-semibold">Place an Order:</h2>
-        <form onSubmit={handleOrderSubmit} className="w-1/3">
-          <div className="mb-4">
-            <label className="block text-gray-600">Quantity:</label>
-            <input
-              type="number"
-              className="w-full border rounded p-2"
-              value={quantity}
-              onChange={(e) => setQuantity(Number(e.target.value))}
-            />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="md:col-span-2">
+          <div className="grid grid-cols-3 gap-4">
+            {foodItems.map((foodItem) => (
+              <div
+                key={foodItem.id}
+                className="bg-pink-100 p-4 rounded-lg shadow-md"
+              >
+                <h3 className="text-lg font-semibold mb-2">{foodItem.name}</h3>
+                <p className="mb-2">
+                  <strong>Quantity:</strong> {foodItem.quantity}
+                </p>
+                <p className="mb-2">
+                  <strong>Price:</strong> {foodItem.price}
+                </p>
+              </div>
+            ))}
           </div>
-          <div className="mb-4">
-            <label className="block text-gray-600">Food Item:</label>
-            <select
-              className="w-full border rounded p-2"
-              value={selectedFoodItem || ""}
-              onChange={(e) => setSelectedFoodItem(Number(e.target.value))}
-            >
-              <option value="">Select a Food Item</option>
-              {foodItems.map((foodItem) => (
-                <option key={foodItem.id} value={foodItem.id}>
-                  {foodItem.name}
-                </option>
-              ))}
-            </select>
+        </div>
+        <div>
+          <div className="bg-gray-100 p-4 rounded-lg shadow-md">
+            <h2 className="text-2xl font-semibold">Place an Order:</h2>
+            <form onSubmit={handleOrderSubmit}>
+              <div className="mb-4">
+                <label className="block text-gray-600">Quantity:</label>
+                <input
+                  type="number"
+                  className="w-full border rounded p-2"
+                  value={quantity}
+                  onChange={(e) => setQuantity(Number(e.target.value))}
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-gray-600">Food Item:</label>
+                <select
+                  className="w-full border rounded p-2"
+                  value={selectedFoodItem || ""}
+                  onChange={(e) => setSelectedFoodItem(Number(e.target.value))}
+                >
+                  <option value="">Select a Food Item</option>
+                  {foodItems.map((foodItem) => (
+                    <option key={foodItem.id} value={foodItem.id}>
+                      {foodItem.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <button
+                type="submit"
+                className="bg-blue-500 text-white rounded p-2 hover:bg-blue-700"
+              >
+                Place Order
+              </button>
+            </form>
           </div>
-          <button
-            type="submit"
-            className="bg-blue-500 text-white rounded p-2 hover:bg-blue-700"
-          >
-            Place Order
-          </button>
-        </form>
+        </div>
       </div>
     </div>
   );
