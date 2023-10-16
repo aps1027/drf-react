@@ -26,6 +26,11 @@ Note: Current DB is SQLite (if want to change, follow this https://docs.djangopr
 python manage.py migrate
 ```
 
+### DB Seed
+```
+python manage.py loaddata fixture/data.json
+```
+
 ### Run Test
 ```
 python manage.py test
