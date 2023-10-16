@@ -2,7 +2,7 @@ from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from .models import FoodItem, Truck, Order
-from .serializer import OrderSerializer
+from .serializer import OrderSerializer, TruckSerializer
 from rest_framework import status
 
 @api_view(['POST'])
@@ -74,3 +74,19 @@ def getTruckDetail(request, pk):
             'total_amount': total_amount})
     except Truck.DoesNotExist:
         return Response({'detail': 'Truck not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+
+@api_view(['GET'])
+def getTrucks(request):
+    """
+    Get truck list
+
+    URL:
+        http://localhost:8000/api/truck/
+
+    Returns:
+        A JSON response with the truck list.
+    """
+    trucks = Truck.objects.all()
+    serializer = TruckSerializer(trucks, many=True)
+    return Response({ 'trucks': serializer.data })

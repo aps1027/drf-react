@@ -67,6 +67,18 @@ Returns:
     A JSON response with the truck's details.
 ```
 
+### API detail To get Truck List
+```
+"""
+Get truck list
+
+URL:
+    http://localhost:8000/api/truck/
+
+Returns:
+    A JSON response with the truck list.
+```
+
 ## For Frontend (http://localhost:3000/)
 ### NPM Install
 ```
