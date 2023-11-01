@@ -1,6 +1,7 @@
 export class FoodItem {
   id!: number;
-  name!: string;
+  type!: string;
   price!: number;
   quantity!: number;
+  flavor!: string;
 }

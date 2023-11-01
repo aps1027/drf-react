@@ -1,8 +1,8 @@
 from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
-from .models import FoodItem, Truck, Order
-from .serializer import OrderSerializer, TruckSerializer
+from .models import FoodItem, Truck, Order, FoodItemType, Flavor
+from .serializer import OrderSerializer, TruckSerializer, FlavorSerializer, FoodItemTypeSerializer
 from rest_framework import status
 
 @api_view(['POST'])
@@ -14,9 +14,10 @@ def postOrder(request):
         http://localhost:8000/api/order/
 
     Args:
-        food_item: Food Item ID
+        food_item_type_id: Food Item Type ID
         quantity: quantity 
-        truck: Truck ID
+        flavor_id: Flavor ID (optional for food item that does not have flavor)
+        truck_id: Truck ID
 
     Returns:
         "ENJOY!": if buy in stock amount of food
@@ -24,18 +25,11 @@ def postOrder(request):
     """
     serializer = OrderSerializer(data=request.data)
 
-    serializer.is_valid(raise_exception=True)
-
-    quantity = int(request.data['quantity'])
-    food_item_id = request.data['food_item']
-    food_item = FoodItem.objects.get(id=food_item_id)
-    if food_item.quantity >= quantity:
-        food_item.quantity -= quantity
-        food_item.save()
-        serializer.save()
+    if serializer.is_valid():
+        serializer.create()
         return Response({'message': 'ENJOY!'})
     else:
-        return Response({'message': 'SORRY!'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
 def getTruckDetail(request, pk):
@@ -54,15 +48,18 @@ def getTruckDetail(request, pk):
     try:
         truck = Truck.objects.get(pk=pk)
         food_items = FoodItem.objects.filter(truck=truck)
-        food_items = [
-                {
-                    'id': item.id,
-                    'name': item.name,
-                    'price': item.price,
-                    'quantity': item.quantity
-                }
-                for item in food_items
-            ]
+        food_items_list = []
+
+        for item in food_items:
+            flavors = [flavor.flavor.name for flavor in item.fooditemflavor_set.all()]
+            food_item_data = {
+                'id': item.id,
+                'type': item.food_item_type.name,
+                'flavor': flavors[0] if len(flavors) else '',
+                'price': item.price,
+                'quantity': item.quantity
+            }
+            food_items_list.append(food_item_data)
 
         orders = Order.objects.filter(truck=truck)
         total_amount = sum(order.food_item.price * order.quantity for order in orders)
@@ -70,8 +67,9 @@ def getTruckDetail(request, pk):
         return Response({
             'id': truck.id,
             'name': truck.name,
-            'food_items': food_items, 
-            'total_amount': total_amount})
+            'food_items': food_items_list,
+            'total_amount': total_amount
+        })
     except Truck.DoesNotExist:
         return Response({'detail': 'Truck not found'}, status=status.HTTP_404_NOT_FOUND)
     
@@ -90,3 +88,33 @@ def getTrucks(request):
     trucks = Truck.objects.all()
     serializer = TruckSerializer(trucks, many=True)
     return Response({ 'trucks': serializer.data })
+
+@api_view(['GET'])
+def getFlavors(request):
+    """
+    Get flavor list
+
+    URL:
+        http://localhost:8000/api/flavor/
+
+    Returns:
+        A JSON response with the flavor list.
+    """
+    flavors = Flavor.objects.all()
+    serializer = FlavorSerializer(flavors, many=True)
+    return Response({ 'flavors': serializer.data })
+
+@api_view(['GET'])
+def getFoodItemTypes(request):
+    """
+    Get food item type list
+
+    URL:
+        http://localhost:8000/api/food-item-type/
+
+    Returns:
+        A JSON response with the food item type list.
+    """
+    food_item_types = FoodItemType.objects.all()
+    serializer = FoodItemTypeSerializer(food_item_types, many=True)
+    return Response({ 'food_item_types': serializer.data })

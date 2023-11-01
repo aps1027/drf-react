@@ -3,14 +3,21 @@ import React, { useState, useEffect } from "react";
 import axios from "@/api/axiosInstance";
 import { Truck } from "@/model/Truck";
 import { FoodItem } from "@/model/FoodItem";
+import { Flavor } from "@/model/Flavor";
+import { FoodItemType } from "@/model/FoodItemType";
 
 export default function Home() {
   const [trucks, setTrucks] = useState<Truck[]>([]);
+  const [flavors, setFlavors] = useState<Flavor[]>([]);
+  const [foodItemTypes, setFoodItemTypes] = useState<FoodItemType[]>([]);
   const [foodItems, setFoodItems] = useState<FoodItem[]>([]);
   const [totalAmount, setTotalAmount] = useState<number>(0);
-  const [selectedTruckId, setSelectedTruckId] = useState<string | null>(null);
+  const [selectedTruckId, setSelectedTruckId] = useState<number | null>(null);
   const [quantity, setQuantity] = useState<number>(1);
-  const [selectedFoodItem, setSelectedFoodItem] = useState<number | null>(null);
+  const [selectedFoodItemTypeId, setSelectedFoodItemTypeId] = useState<
+    number | null
+  >(null);
+  const [selectedFlavorId, setSelectedFlavorId] = useState<number | null>(null);
 
   const fetchTrucks = async () => {
     try {
@@ -26,7 +33,35 @@ export default function Home() {
     }
   };
 
-  const fetchTruckData = async (truckId: string) => {
+  const fetchFlavors = async () => {
+    try {
+      const response = await axios.get("/flavor");
+      if (response.status === 200) {
+        const data = response.data.flavors;
+        setFlavors(data);
+      } else {
+        console.error("Failed to fetch flavors.");
+      }
+    } catch (error) {
+      console.error("Error fetching flavors:", error);
+    }
+  };
+
+  const fetchFoodItemTypes = async () => {
+    try {
+      const response = await axios.get("/food-item-type");
+      if (response.status === 200) {
+        const data = response.data.food_item_types;
+        setFoodItemTypes(data);
+      } else {
+        console.error("Failed to fetch food item types.");
+      }
+    } catch (error) {
+      console.error("Error fetching food item types:", error);
+    }
+  };
+
+  const fetchTruckData = async (truckId: number) => {
     try {
       const response = await axios.get(`/truck/${truckId}`);
       if (response.status === 200) {
@@ -44,7 +79,7 @@ export default function Home() {
   const handleTruckSelection = (
     event: React.ChangeEvent<HTMLSelectElement>
   ) => {
-    const selectedId = event.target.value;
+    const selectedId = +event.target.value;
     setSelectedTruckId(selectedId);
 
     if (selectedId) {
@@ -55,19 +90,20 @@ export default function Home() {
   const handleOrderSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
-    if (selectedTruckId && selectedFoodItem && quantity > 0) {
+    if (selectedTruckId && selectedFoodItemTypeId && quantity > 0) {
       try {
         const response = await axios.post("/order/", {
           quantity: quantity,
-          food_item: selectedFoodItem,
-          truck: selectedTruckId,
+          food_item_type_id: selectedFoodItemTypeId,
+          flavor_id: selectedFlavorId !== null ? selectedFlavorId : 0,
+          truck_id: selectedTruckId,
         });
         if (response.status === 200) {
           alert(response.data.message);
           fetchTruckData(selectedTruckId);
         }
-      } catch (error) {
-        alert("SORRY!");
+      } catch (error: any) {
+        alert(error.response.data.message);
         console.error("Error placing the order:", error);
       }
     }
@@ -75,6 +111,8 @@ export default function Home() {
 
   useEffect(() => {
     fetchTrucks();
+    fetchFlavors();
+    fetchFoodItemTypes();
   }, []);
 
   return (
@@ -113,7 +151,11 @@ export default function Home() {
                 key={foodItem.id}
                 className="bg-pink-100 p-4 rounded-lg shadow-md"
               >
-                <h3 className="text-lg font-semibold mb-2">{foodItem.name}</h3>
+                <h3 className="text-lg font-semibold mb-2">
+                  {foodItem.flavor
+                    ? foodItem.flavor + " " + foodItem.type
+                    : foodItem.type}
+                </h3>
                 <p className="mb-2">
                   <strong>Quantity:</strong> {foodItem.quantity}
                 </p>
@@ -138,19 +180,48 @@ export default function Home() {
                 />
               </div>
               <div className="mb-4">
-                <label className="block text-gray-600">Food Item:</label>
+                <label className="block text-gray-600">Food Item Type:</label>
                 <select
                   className="w-full border rounded p-2"
-                  value={selectedFoodItem || ""}
-                  onChange={(e) => setSelectedFoodItem(Number(e.target.value))}
+                  value={selectedFoodItemTypeId || ""}
+                  onChange={(e) =>
+                    setSelectedFoodItemTypeId(Number(e.target.value))
+                  }
                 >
-                  <option value="">Select a Food Item</option>
-                  {foodItems.map((foodItem) => (
-                    <option key={foodItem.id} value={foodItem.id}>
-                      {foodItem.name}
+                  <option value="">Select a Food Item Type</option>
+                  {foodItemTypes.map((type) => (
+                    <option key={type.id} value={type.id}>
+                      {type.name}
                     </option>
                   ))}
                 </select>
+              </div>
+              <div className="mb-4">
+                <label className="block text-gray-600">Flavor:</label>
+                {selectedFoodItemTypeId !== null ? (
+                  foodItemTypes.find(
+                    (type) => type.id === selectedFoodItemTypeId
+                  )?.has_flavor ? (
+                    <select
+                      className="w-full border rounded p-2"
+                      value={selectedFlavorId || ""}
+                      onChange={(e) =>
+                        setSelectedFlavorId(Number(e.target.value))
+                      }
+                    >
+                      <option value="">Select a Flavor</option>
+                      {flavors.map((flavor) => (
+                        <option key={flavor.id} value={flavor.id}>
+                          {flavor.name}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <p>No flavors available for this food item type.</p>
+                  )
+                ) : (
+                  <p>Please select a Food Item Type first.</p>
+                )}
               </div>
               <button
                 type="submit"

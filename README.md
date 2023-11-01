@@ -49,13 +49,15 @@ URL:
     http://localhost:8000/api/order/
 
 Args:
-    food_item: Food Item ID
+    food_item_type_id: Food Item Type ID
     quantity: quantity 
-    truck: Truck ID
+    flavor_id: Flavor ID (optional for food item that doesnot have flavor)
+    truck_id: Truck ID
 
 Returns:
     "ENJOY!": if buy in stock amount of food
     "SORRY!": if buy out of stock amount of food
+    "UNAVAILABLE!": if buy unavailable food
 ```
 
 ### API Detail To Get Truck Details
@@ -82,6 +84,30 @@ URL:
 
 Returns:
     A JSON response with the truck list.
+```
+
+### API detail To get Flavor List
+```
+"""
+Get flavor list
+
+URL:
+    http://localhost:8000/api/flavor/
+
+Returns:
+    A JSON response with the flavor list.
+```
+
+### API detail To get Food Item Type List
+```
+"""
+Get truck list
+
+URL:
+    http://localhost:8000/api/food-item-type/
+
+Returns:
+    A JSON response with the food item type list.
 ```
 
 ## For Frontend (http://localhost:3000/)
